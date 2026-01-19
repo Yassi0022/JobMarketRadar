@@ -1,0 +1,9 @@
+requests
+python-dotenv
+pandas
+mysql-connector-python
+matplotlib
+seaborn
+jinja2
+
+

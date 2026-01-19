@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# Python
+**/.venv/
+**/__pycache__/
+*.pyc
+
+# Outputs
+**/jobs.csv
+**/reports/
+
+# Maven/Java build
+**/target/
+
+# IDE
+.vscode/
+.idea/
+*.iml
