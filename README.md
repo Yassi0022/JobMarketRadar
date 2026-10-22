@@ -8,7 +8,7 @@ Built as a personal tool to analyze which tech profiles are most requested and h
 
 ## 🔄 Pipeline Architecture
 
-```
+```text
 Adzuna API
     │
     ▼
@@ -42,6 +42,8 @@ The pipeline is **orchestrated by a single Java entry point** (`App.java`) that 
 - **Jobs by Month** — posting volume over time by `posted_at`
 - **Summary KPIs** — total jobs, distinct companies, jobs in last 7 and 30 days
 
+**Date logic:** The 90-day trend charts use `posted_at`, falling back to `created_at` when `posted_at` is missing. The 7- and 30-day KPIs use `posted_at` only.
+
 All tables and charts are embedded in a single `report_market.html` that opens automatically in the browser after each run.
 
 ---
@@ -61,7 +63,7 @@ All tables and charts are embedded in a single `report_market.html` that opens a
 
 ## 📁 Project Structure
 
-```
+```text
 JobMarketRadar/
 └── my-app/
     ├── pom.xml
@@ -90,7 +92,7 @@ JobMarketRadar/
 
 Create `my-app/src/main/python/.env` from `.env.example`:
 
-```env
+```dotenv
 ADZUNA_APP_ID=your_app_id
 ADZUNA_APP_KEY=your_app_key
 ADZUNA_COUNTRY=it          # e.g. it, gb, us
@@ -106,7 +108,7 @@ DB_PASSWORD=your_password
 
 ### 2. Python virtual environment
 
-```bash
+```powershell
 cd my-app/src/main/python
 py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
@@ -146,17 +148,13 @@ The HTML report opens automatically in the browser when done.
 
 ## 💡 Key Design Decisions
 
-**Java as orchestrator, Python for data work.**
-`App.java` uses `ProcessBuilder` with `inheritIO()` to invoke the Python scripts as subprocesses, streaming their stdout/stderr live to the terminal. Java handles the upsert with full JDBC transaction control (`setAutoCommit(false)` + `commit()`); Python handles API calls and visualization where pandas/matplotlib/seaborn are the natural fit.
+**Java as orchestrator, Python for data work.** `App.java` uses `ProcessBuilder` with `inheritIO()` to invoke the Python scripts as subprocesses, streaming their stdout/stderr live to the terminal. Java handles the upsert with full JDBC transaction control (`setAutoCommit(false)` + `commit()`); Python handles API calls and visualization where pandas/matplotlib/seaborn are the natural fit.
 
-**Batch upsert for performance and idempotency.**
-Records are inserted in batches of 500 via `PreparedStatement.addBatch()`. The `ON DUPLICATE KEY UPDATE` clause on `adzuna_id` makes the pipeline idempotent — running it daily updates existing postings without duplicates.
+**Batch upsert for performance and idempotency.** Records are inserted in batches of 500 via `PreparedStatement.addBatch()`. The `ON DUPLICATE KEY UPDATE` clause on `adzuna_id` makes the pipeline idempotent — running it daily updates existing postings without duplicates.
 
-**Defensive CSV parsing.**
-Each row is validated before insertion: rows with fewer than 6 fields are skipped, `adzuna_id` is parsed as `Long`, and `posted_at` is parsed from ISO-8601 `OffsetDateTime` with graceful fallback to `NULL`. Invalid row counts are logged at the end.
+**Defensive CSV parsing.** Each row is validated before insertion: rows with fewer than 6 fields are skipped, `adzuna_id` is parsed as `Long`, and `posted_at` is parsed from ISO-8601 `OffsetDateTime` with graceful fallback to `NULL`. Invalid row counts are logged at the end.
 
-**Geo-level classification in reporting.**
-`market_report.py` splits the `location` field and classifies each posting as `city`, `province`, or `country` level, filtering out "Italia" entries from city rankings to avoid noise in geographic analysis.
+**Geo-level classification in reporting.** `market_report.py` splits the `location` field and classifies each posting as `city`, `province`, or `country` level, filtering out "Italia" entries from city rankings to avoid noise in geographic analysis.
 
 ---
 
