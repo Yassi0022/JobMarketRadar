@@ -16,7 +16,7 @@ DB_HOST = os.getenv('DB_HOST', 'localhost')
 DB_PORT = int(os.getenv('DB_PORT', 3306))
 DB_NAME = os.getenv('DB_NAME', 'job_radar')
 DB_USER = os.getenv('DB_USER', 'root')
-DB_PASSWORD = os.getenv('DB_PASSWORD', '//your_password_here')
+DB_PASSWORD = os.getenv('DB_PASSWORD', 'Sparks_0022')
 
 OUT_DIR = "reports"
 os.makedirs(OUT_DIR, exist_ok=True)
