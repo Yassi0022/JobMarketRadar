@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="it">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>JobMarketRadar, Report demo</title>
+    <style>
+        body {
+            font: 16px/1.5 system-ui, sans-serif;
+            margin: 2rem auto;
+            max-width: 900px;
+            padding: 0 1rem;
+            color: #17212b;
+        }
+
+        .note {
+            background: #eef6ff;
+            border-left: 4px solid #2878b8;
+            padding: .8rem 1rem;
+        }
+
+        .cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .card {
+            background: #f4f6f8;
+            border-radius: 8px;
+            min-width: 150px;
+            padding: 1rem;
+        }
+
+        .value {
+            display: block;
+            font-size: 1.7rem;
+            font-weight: 700;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid #ddd;
+            padding: .65rem;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>JobMarketRadar, Report demo</h1>
+    <p class="note">Esempio statico con dati interamente fittizi. Non richiede Adzuna, MySQL o connessione a servizi
+        esterni.</p>
+    <section class="cards" aria-label="Indicatori di esempio">
+        <div class="card">Annunci <span class="value">128</span></div>
+        <div class="card">Aziende demo <span class="value">42</span></div>
+        <div class="card">Ultimi 7 giorni <span class="value">19</span></div>
+        <div class="card">Ultimi 30 giorni <span class="value">61</span></div>
+    </section>
+    <h2>Ruoli più frequenti, dati fittizi</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Ruolo di esempio</th>
+                <th>Annunci</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Data Analyst</td>
+                <td>34</td>
+            </tr>
+            <tr>
+                <td>Software Engineer</td>
+                <td>27</td>
+            </tr>
+            <tr>
+                <td>Data Scientist</td>
+                <td>18</td>
+            </tr>
+            <tr>
+                <td>Product Analyst</td>
+                <td>12</td>
+            </tr>
+        </tbody>
+    </table>
+    <h2>Città, dati fittizi</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Città</th>
+                <th>Annunci</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Roma</td>
+                <td>31</td>
+            </tr>
+            <tr>
+                <td>Milano</td>
+                <td>29</td>
+            </tr>
+            <tr>
+                <td>Torino</td>
+                <td>14</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>

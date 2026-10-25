@@ -1,0 +1,19 @@
+CREATE DATABASE IF NOT EXISTS jobmarket_db
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+USE jobmarket_db;
+
+CREATE TABLE IF NOT EXISTS job_postings (
+id BIGINT NOT NULL AUTO_INCREMENT,
+source VARCHAR(50) NOT NULL,
+adzuna_id BIGINT NOT NULL,
+title VARCHAR(255) NOT NULL,
+company VARCHAR(255) NULL,
+location VARCHAR(255) NOT NULL,
+url TEXT NOT NULL,
+posted_at DATE NULL,
+created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (id),
+UNIQUE KEY uq_job_postings_adzuna_id (adzuna_id)
+);

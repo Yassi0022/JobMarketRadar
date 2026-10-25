@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Locale;
 
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
@@ -25,7 +26,15 @@ public class App {
         Path pyDir = projectDir.resolve("src").resolve("main").resolve("python");
 
         // Python venv inside src/main/python/.venv
-        String pythonExe = pyDir.resolve(".venv").resolve("Scripts").resolve("python.exe").toString();
+        String pythonExe = System.getenv("PYTHON_EXE");
+        if (pythonExe == null || pythonExe.isBlank()) {
+            boolean windows = System.getProperty("os.name")
+                    .toLowerCase(Locale.ROOT)
+                    .contains("win");
+            Path pythonBin = pyDir.resolve(".venv")
+                    .resolve(windows ? "Scripts" : "bin");
+            pythonExe = pythonBin.resolve(windows ? "python.exe" : "python").toString();
+        }
 
         Path ingestPy = pyDir.resolve("adzuna_ingest.py");
         Path reportPy = pyDir.resolve("market_report.py");

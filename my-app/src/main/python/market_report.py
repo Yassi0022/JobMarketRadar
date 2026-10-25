@@ -12,11 +12,15 @@ import webbrowser
 
 load_dotenv()
 
-DB_HOST = os.getenv('DB_HOST', 'localhost')
-DB_PORT = int(os.getenv('DB_PORT', 3306))
-DB_NAME = os.getenv('DB_NAME', 'job_radar')
-DB_USER = os.getenv('DB_USER', 'root')
-DB_PASSWORD = os.getenv('DB_PASSWORD', 'Sparks_0022')
+def env_setting(name, default):
+    value = os.getenv(name)
+    return default if value is None or not value.strip() else value.strip()
+
+DB_HOST = env_setting("DB_HOST", "localhost")
+DB_PORT = int(env_setting("DB_PORT", "3306"))
+DB_NAME = env_setting("DB_NAME", "jobmarket_db")
+DB_USER = env_setting("DB_USER", "root")
+DB_PASSWORD = env_setting("DB_PASSWORD", "")
 
 OUT_DIR = "reports"
 os.makedirs(OUT_DIR, exist_ok=True)
