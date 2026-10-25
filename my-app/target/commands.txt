@@ -1,4 +1,0 @@
-//run
-mvn exec:java -Dexec.mainClass="com.mycompany.app.App" 
-//compile
-mvn clean package
