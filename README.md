@@ -73,7 +73,7 @@ Set-Location .\my-app\src\main\python
 py -3 -m venv .venv
 .\\.venv\\Scripts\\Activate.ps1
 python -m pip install -r requirements.txt
-Set-Location ..\..\..\
+Set-Location ..\..\..\..
 
 ## Run the pipeline
 
