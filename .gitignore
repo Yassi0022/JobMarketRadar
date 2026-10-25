@@ -1,0 +1,8 @@
+*.class
+.env
+.vscode/
+target/
+*.csv
+data/
+logs/
+*.log
