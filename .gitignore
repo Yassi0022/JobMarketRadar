@@ -5,4 +5,5 @@ target/
 *.csv
 data/
 logs/
+reports/
 *.log

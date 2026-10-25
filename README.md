@@ -1,163 +1,108 @@
-# 📡 JobMarketRadar
+# JobMarketRadar
 
-An end-to-end **job market data pipeline** built with Java + Python that collects job postings from the Adzuna API, stores them in MySQL, and generates automated HTML/CSV reports to monitor labor market demand, roles, and trends.
+JobMarketRadar collects job postings from Adzuna, stores them in MySQL, and generates HTML and CSV market reports.
 
-Built as a personal tool to analyze which tech profiles are most requested and how the job market evolves over time.
+*Static demo:* my-app/demo/report.html (uses fictional data, no Adzuna credentials or MySQL needed).
 
----
+## Pipeline
 
-## 🔄 Pipeline Architecture
+1. Fetch job postings from Adzuna for the configured search queries
+2. Write the postings to an intermediate jobs.csv file
+3. Import the CSV into the MySQL job_postings table
+4. Generate HTML, CSV, and chart outputs from the database
 
-```text
-Adzuna API
-    │
-    ▼
-adzuna_ingest.py          # Python: HTTP fetch → jobs.csv
-    │
-    ▼
-App.java                  # Java: reads jobs.csv → batch upsert into MySQL (JDBC)
-    │                     # ON DUPLICATE KEY UPDATE on adzuna_id — idempotent
-    ▼
-market_report.py          # Python: reads from MySQL → HTML report + charts + CSV
-    │
-    ▼
-reports/
-  ├── report_market.html   # Full interactive report (auto-opens in browser)
-  ├── report_market.csv    # Full cleaned dataset
-  └── report_summary.csv   # Aggregated KPIs
-```
+The Java app orchestrates the Python scripts and imports the data; Python handles Adzuna ingestion and report generation
 
-The pipeline is **orchestrated by a single Java entry point** (`App.java`) that invokes the two Python scripts as subprocesses via `ProcessBuilder`. One Maven command runs the full flow.
+## Requirements
 
----
+- Java 17, Maven, Python 3, MySQL 8
+- Adzuna API credentials (ADZUNA_APP_ID and ADZUNA_APP_KEY)
 
-## 📊 Report Output
+Python dependencies: my-app/src/main/python/requirements.txt
 
-`market_report.py` reads directly from MySQL and produces:
+## Configuration
 
-- **Trend charts** — jobs posted per day over the last 90 days (national + Lazio/Rome focus)
-- **Top Cities** — top 15 cities by job volume (city-level only, provinces and "Italia" separated)
-- **Top Companies** — top 15 hiring companies
-- **Top Job Titles** — top 15 most frequent roles
-- **Jobs by Month** — posting volume over time by `posted_at`
-- **Summary KPIs** — total jobs, distinct companies, jobs in last 7 and 30 days
+Python loads config from my-app/src/main/python/.env, create it from the committed .env.example and set:
 
-**Date logic:** The 90-day trend charts use `posted_at`, falling back to `created_at` when `posted_at` is missing. The 7- and 30-day KPIs use `posted_at` only.
-
-All tables and charts are embedded in a single `report_market.html` that opens automatically in the browser after each run.
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Orchestration | Java 21, Maven, `ProcessBuilder` (subprocess invocation) |
-| Data Ingestion | Python, `requests`, Adzuna REST API → `jobs.csv` |
-| Storage | MySQL 8 — JDBC batch upsert, `ON DUPLICATE KEY UPDATE` |
-| CSV Parsing | `opencsv` — `CSVReaderBuilder` with header skip |
-| Reporting | Python, `pandas`, `matplotlib`, `seaborn`, `mysql-connector` |
-| Config | `.env` (python-dotenv), `.env.example` committed |
-
----
-
-## 📁 Project Structure
-
-```text
-JobMarketRadar/
-└── my-app/
-    ├── pom.xml
-    └── src/main/
-        ├── java/com/mycompany/app/
-        │   ├── App.java              # Pipeline orchestrator
-        │   └── DB.java               # JDBC connection helper
-        └── python/
-            ├── adzuna_ingest.py      # API fetch → jobs.csv
-            ├── market_report.py      # MySQL → HTML/CSV report + charts
-            ├── requirements.txt
-            ├── .env.example
-            └── reports/             # Generated output (gitignored)
-                ├── report_market.html
-                ├── report_market.csv
-                ├── report_summary.csv
-                ├── trend_90d.png
-                └── trend_lazio_90d.png
-```
-
----
-
-## ⚙️ Setup
-
-### 1. Environment variables
-
-Create `my-app/src/main/python/.env` from `.env.example`:
-
-```dotenv
-ADZUNA_APP_ID=your_app_id
-ADZUNA_APP_KEY=your_app_key
-ADZUNA_COUNTRY=it          # e.g. it, gb, us
-
+ADZUNA_APP_ID=your_adzuna_app_id
+ADZUNA_APP_KEY=your_adzuna_app_key
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=jobmarket_db
-DB_USER=your_user
-DB_PASSWORD=your_password
-```
+DB_USER=root
+DB_PASSWORD=your_mysql_password
 
-> API keys and DB credentials are never committed.
+Never commit .env or put credentials in source code
 
-### 2. Python virtual environment
+### Java and .env
 
-```powershell
+Python loads .env with python-dotenv; Java does NOT load that file, DB.java reads DB_* from the process environment via System.getenv(). Defaults: localhost:3306, jobmarket_db, root, empty password. If your MySQL settings differ, export the DB_* variables in the terminal before running Maven, with the same values as .env
+
+## Setup
+
+1. Start MySQL 8 and apply the schema from the repo root:
+
+macOS/Linux:
+mysql -u root -p < my-app/schema.sql
+
+Windows PowerShell:
+Get-Content .\my-app\schema.sql | mysql -u root -p
+
+2. Create .env:
+
+macOS/Linux:
+cp my-app/src/main/python/.env.example my-app/src/main/python/.env
+
+Windows:
+Copy-Item .\my-app\src\main\python\.env.example .\my-app\src\main\python\.env
+
+Edit it with your Adzuna and MySQL values
+
+3. Create the venv and install dependencies:
+
+macOS/Linux:
 cd my-app/src/main/python
-py -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+cd ../../../../
 
-### 3. MySQL
+Windows:
+Set-Location .\my-app\src\main\python
+py -3 -m venv .venv
+.\\.venv\\Scripts\\Activate.ps1
+python -m pip install -r requirements.txt
+Set-Location ..\..\..\
 
-Create the database and the `job_postings` table with a `UNIQUE` constraint on `adzuna_id`:
+## Run the pipeline
 
-```sql
-CREATE TABLE job_postings (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    source     VARCHAR(50),
-    adzuna_id  BIGINT UNIQUE,
-    title      VARCHAR(255),
-    company    VARCHAR(255),
-    location   VARCHAR(255),
-    url        TEXT,
-    posted_at  DATE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+From the repo root, export the DB_* variables first if they differ from the defaults, then:
 
----
-
-## ▶️ Run
-
-One command from the repository root runs the full pipeline:
-
-```bash
+macOS/Linux:
+export DB_HOST="localhost"
+export DB_PORT="3306"
+export DB_NAME="jobmarket_db"
+export DB_USER="root"
+export DB_PASSWORD="your_mysql_password"
 mvn -f my-app/pom.xml exec:java -Dexec.mainClass="com.mycompany.app.App"
-```
 
-The HTML report opens automatically in the browser when done.
+Windows:
+$env:DB_HOST = "localhost"
+$env:DB_PORT = "3306"
+$env:DB_NAME = "jobmarket_db"
+$env:DB_USER = "root"
+$env:DB_PASSWORD = "your_mysql_password"
+mvn -f my-app/pom.xml exec:java "-Dexec.mainClass=com.mycompany.app.App"
 
----
+## Python interpreter selection
 
-## 💡 Key Design Decisions
+App.java picks the Python used to run the scripts: Windows default .venv/Scripts/python.exe, macOS/Linux .venv/bin/python. Set PYTHON_EXE to override. If the chosen interpreter is missing, create the venv at the default location or set PYTHON_EXE to a valid one
 
-**Java as orchestrator, Python for data work.** `App.java` uses `ProcessBuilder` with `inheritIO()` to invoke the Python scripts as subprocesses, streaming their stdout/stderr live to the terminal. Java handles the upsert with full JDBC transaction control (`setAutoCommit(false)` + `commit()`); Python handles API calls and visualization where pandas/matplotlib/seaborn are the natural fit.
+## Generated files
 
-**Batch upsert for performance and idempotency.** Records are inserted in batches of 500 via `PreparedStatement.addBatch()`. The `ON DUPLICATE KEY UPDATE` clause on `adzuna_id` makes the pipeline idempotent — running it daily updates existing postings without duplicates.
+Output goes to my-app/src/main/python/reports/: report_market.html, report_market.csv, report_summary.csv, trend_90d.png, trend_lazio_90d.png. The ingestion script also writes jobs.csv
 
-**Defensive CSV parsing.** Each row is validated before insertion: rows with fewer than 6 fields are skipped, `adzuna_id` is parsed as `Long`, and `posted_at` is parsed from ISO-8601 `OffsetDateTime` with graceful fallback to `NULL`. Invalid row counts are logged at the end.
+## Run Maven tests
 
-**Geo-level classification in reporting.** `market_report.py` splits the `location` field and classifies each posting as `city`, `province`, or `country` level, filtering out "Italia" entries from city rankings to avoid noise in geographic analysis.
-
----
-
-## 👤 Author
-
-**Yassine Hatouf** · [GitHub](https://github.com/Yassi0022) · [LinkedIn](https://linkedin.com/in/yassine-hatouf)
+mvn -f my-app/pom.xml test
